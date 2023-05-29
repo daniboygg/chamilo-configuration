@@ -1,0 +1,18 @@
+version: '3'
+
+services:
+  database:
+    container_name: chamilo-database
+    image: mariadb:10
+    ports:
+      - "3306:3306"
+    environment:
+      MARIADB_ROOT_PASSWORD: password
+      MARIADB_DATABASE: CHAMILO
+      MARIADB_USER: chamilo
+      MARIADB_PASSWORD: chamilo
+    volumes:
+      - chamilo-database:/var/lib/mysql
+
+volumes:
+  chamilo-database:
