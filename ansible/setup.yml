@@ -38,6 +38,7 @@
           - curl
           - apache2
           - libapache2-mod-php
+          - libapache2-mod-xsendfile
           - php{{ php_version }}
           - php{{ php_version }}-dev
           - php{{ php_version }}-cli
@@ -77,7 +78,7 @@
         checksum: sha256:9256c4c1c803b9d0cb7a66a1ab6c737e48c43cc6df7b8ec9ec2497a724bf44de
         mode: u=rwx,g=rx,o=rx
 
-    - name: Ensure correct version of php is set to general php bin
+    - name: Ensure /usr/bin/php link to correct php version
       ansible.builtin.file:
         src: "/usr/bin/php{{ php_version }}"
         dest: /usr/bin/php
@@ -92,13 +93,19 @@
         owner: root
         group: root
         mode: u=rw,g=r,o=r
-      notify:
-        - Enable site
+      notify: Enable site
 
     - name: Ensure module proxy_fcgi is enabled
       community.general.apache2_module:
-        name: proxy_fcgi
+        name: "{{ item.module }}"
         state: present
+      loop:
+        - module: proxy_fcgi
+        - module: rewrite
+        - module: ssl
+        - module: headers
+        - module: expires
+      notify: Restart apache
 
     - name: Ensure machine increase max number of files watcher for dev-server to work
       ansible.builtin.lineinfile:
@@ -115,8 +122,7 @@
           upload_max_filesize = 100M
           session.cookie_httponly = true
           date.timezone = "Europe/Madrid"
-      notify:
-        Restart php-fpm
+      notify: Restart php-fpm
 
   handlers:
     - name: Enable site
