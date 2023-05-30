@@ -7,7 +7,10 @@
   vars:
     install_local_database: False
     install_docker: True
+
     php_version: "8.1"
+    chamilo_dir: "{{ lookup('env','HOME') }}/projects/chamilo-lms/"
+
     docker_users:
       - "{{ lookup('pipe', 'whoami') }}"
     nodejs_version: "18.x"
@@ -37,6 +40,7 @@
           - libapache2-mod-php
           - php{{ php_version }}
           - php{{ php_version }}-dev
+          - php{{ php_version }}-cli
           - php{{ php_version }}-gd
           - php{{ php_version }}-curl
           - php{{ php_version }}-intl
@@ -73,6 +77,14 @@
         checksum: sha256:9256c4c1c803b9d0cb7a66a1ab6c737e48c43cc6df7b8ec9ec2497a724bf44de
         mode: u=rwx,g=rx,o=rx
 
+    - name: Ensure correct version of php is set to general php bin
+      ansible.builtin.file:
+        src: "/usr/bin/php{{ php_version }}"
+        dest: /usr/bin/php
+        owner: root
+        group: root
+        mode: u=rwx,g=rx,o=rx
+
     - name: Ensure a configuration for chamilo site is setup
       ansible.builtin.template:
         src: chamilo.conf
@@ -83,14 +95,43 @@
       notify:
         - Enable site
 
-  handlers:
-    - name: Enable Apache site
-      ansible.builtin.command: a2ensite chamilo.conf
-      args:
-        executable: /usr/sbin/a2ensite
-      notify: Restart Apache
+    - name: Ensure module proxy_fcgi is enabled
+      community.general.apache2_module:
+        name: proxy_fcgi
+        state: present
 
+    - name: Ensure machine increase max number of files watcher for dev-server to work
+      ansible.builtin.lineinfile:
+        path: /etc/sysctl.conf
+        line: fs.inotify.max_user_watches=131070
+      notify: Restart sysctl
+
+    - name: Ensure php.ini for php-fpm service is configured
+      ansible.builtin.blockinfile:
+        backup: true
+        path: "/etc/php/{{ php_version }}/fpm/php.ini"
+        block: |
+          post_max_size = 100M
+          upload_max_filesize = 100M
+          session.cookie_httponly = true
+          date.timezone = "Europe/Madrid"
+      notify:
+        Restart php-fpm
+
+  handlers:
     - name: Enable site
+      ansible.builtin.command: sudo a2ensite chamilo.conf
+      notify: Restart apache
+
+    - name: Restart apache
       ansible.builtin.service:
         name: apache2
+        state: restarted
+
+    - name: Restart sysctl
+      ansible.builtin.command: sysctl -p
+
+    - name: Restart php-fpm
+      ansible.builtin.service:
+        name: "php{{ php_version }}-fpm"
         state: restarted
