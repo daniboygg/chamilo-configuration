@@ -10,6 +10,7 @@
 
     php_version: "8.1"
     chamilo_dir: "{{ lookup('env','HOME') }}/projects/chamilo-lms/"
+    apache_alias: 127.0.0.1
 
     docker_users:
       - "{{ lookup('pipe', 'whoami') }}"
@@ -110,7 +111,7 @@
     - name: Ensure machine increase max number of files watcher for dev-server to work
       ansible.builtin.lineinfile:
         path: /etc/sysctl.conf
-        line: fs.inotify.max_user_watches=131070
+        line: fs.inotify.max_user_watches=262140
       notify: Restart sysctl
 
     - name: Ensure php.ini for php-fpm service is configured
