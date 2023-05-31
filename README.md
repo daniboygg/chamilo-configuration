@@ -12,6 +12,10 @@ Install all needed packages and configure chamilo
 ansible-playbook ansible/setup.yml --ask-become-pass
 ```
 
+You can modify the following variables to change paths according to your needs:
+* chamilo_dir: path were chamilo was cloned from git
+* apache_alias: which url apache should accept in addition to localhost
+
 Start database in a docker container: 
 
 ```bash 
