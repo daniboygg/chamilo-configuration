@@ -6,9 +6,11 @@
 
   vars:
     install_local_database: False
-    install_docker: True
+    install_docker: False
 
     php_version: "8.1"
+    composer_version: "2.5.8"
+    composer_sha256: "sha256:f07934fad44f9048c0dc875a506cca31cc2794d6aebfc1867f3b1fbf48dce2c5"
     chamilo_dir: "{{ lookup('env','HOME') }}/projects/chamilo-lms/"
     apache_alias: 127.0.0.1
 
@@ -74,9 +76,9 @@
 
     - name: Ensure composer is installed and available for user
       ansible.builtin.get_url:
-        url: https://getcomposer.org/download/latest-stable/composer.phar
+        url: "https://getcomposer.org/download/{{ composer_version }}/composer.phar"
         dest: /usr/local/bin/composer
-        checksum: sha256:9256c4c1c803b9d0cb7a66a1ab6c737e48c43cc6df7b8ec9ec2497a724bf44de
+        checksum: "{{ composer_sha256 }}"
         mode: u=rwx,g=rx,o=rx
 
     - name: Ensure /usr/bin/php link to correct php version
