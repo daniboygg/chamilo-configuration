@@ -9,8 +9,8 @@
     install_docker: False
 
     php_version: "8.1"
-    composer_version: "2.5.8"
-    composer_sha256: "sha256:f07934fad44f9048c0dc875a506cca31cc2794d6aebfc1867f3b1fbf48dce2c5"
+    composer_version: "2.7.1"
+    composer_sha256: "sha256:1ffd0be3f27e237b1ae47f9e8f29f96ac7f50a0bd9eef4f88cdbe94dd04bfff0"
     chamilo_dir: "{{ lookup('env','HOME') }}/projects/chamilo-lms/"
     apache_alias: 127.0.0.1
 
@@ -18,6 +18,8 @@
       - "{{ lookup('pipe', 'whoami') }}"
     nodejs_version: "18.x"
     nodejs_install_npm_user: "{{ lookup('pipe', 'whoami') }}"
+    nodejs_npm_global_packages:
+      - yarn
 
   roles:
     - role: geerlingguy.docker
@@ -39,7 +41,10 @@
           - git
           - unzip
           - curl
+          - ca-certificates
           - apache2
+          - curl
+          - gnupg
           - libapache2-mod-php
           - libapache2-mod-xsendfile
           - php{{ php_version }}
@@ -58,7 +63,6 @@
           - php{{ php_version }}-soap
           - php{{ php_version }}-fpm
           - php-pear
-          - nodejs
         state: present
 
     - name: Ensure all needed packages for database (without docker) are installed
