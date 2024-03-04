@@ -23,5 +23,5 @@ docker compose up --build
 ```
 
 Review instructions in https://github.com/chamilo/chamilo-lms to install chamilo-lms (this project only configure
-its dependencies)
+its dependencies)  
 You can start chamilo configuration visiting http://localhost
